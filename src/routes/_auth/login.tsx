@@ -17,9 +17,13 @@ import {
 	FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { authClient } from "@/modules/auth/lib/auth-client";
 
 export const Route = createFileRoute("/_auth/login")({
 	component: LoginPage,
+	validateSearch: z.object({
+		redirect: z.string().optional(),
+	}),
 });
 
 const loginSchema = z.object({
@@ -27,8 +31,29 @@ const loginSchema = z.object({
 	password: z.string().min(1, "Password is required"),
 });
 
+/**
+ * Extract error message from Better Auth error response
+ */
+function getErrorMessage(error: unknown): string {
+	if (!error) {
+		return "An error occurred during login";
+	}
+
+	// Better Auth returns error as an object with message property
+	if (typeof error === "object" && error !== null && "message" in error) {
+		return String(error.message);
+	}
+
+	if (typeof error === "string") {
+		return error;
+	}
+
+	return "Invalid email or password. Please try again.";
+}
+
 function LoginPage() {
 	const navigate = useNavigate();
+	const search = Route.useSearch();
 	const [error, setError] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -37,7 +62,7 @@ function LoginPage() {
 			email: "",
 			password: "",
 		},
-		onSubmit: ({ value }) => {
+		onSubmit: async ({ value }) => {
 			// Validate on submit
 			const result = loginSchema.safeParse(value);
 			if (!result.success) {
@@ -49,14 +74,34 @@ function LoginPage() {
 			setIsSubmitting(true);
 
 			try {
-				// TODO: Implement login logic
+				// Sign in using Better Auth default method
+				const response = await authClient.signIn.email({
+					email: value.email, // required
+					password: value.password, // required
+				});
 
-				// Redirect to home after successful login
-				navigate({ to: "/" });
+				console.log("[Login] Sign in response:", response);
+
+				// Better Auth returns { data, error }
+				if (response.error) {
+					console.error("[Login] Authentication error:", response.error);
+					setError(getErrorMessage(response.error));
+					return;
+				}
+
+				// Successfully logged in
+				if (response.data) {
+					console.log("[Login] ✅ Sign in successful!");
+					console.log("[Login] Response data:", response.data);
+
+					// Navigate to redirect URL or home page
+					const redirectTo = search.redirect || "/";
+					console.log("[Login] Redirecting to:", redirectTo);
+					navigate({ to: redirectTo });
+				}
 			} catch (err) {
-				setError(
-					err instanceof Error ? err.message : "An error occurred during login"
-				);
+				console.error("[Login] Unexpected error during sign in:", err);
+				setError(getErrorMessage(err));
 			} finally {
 				setIsSubmitting(false);
 			}
@@ -159,6 +204,15 @@ function LoginPage() {
 								Don't have an account?{" "}
 								<Link className="text-blue-600 hover:underline" to="/signup">
 									Sign up
+								</Link>
+							</FieldDescription>
+							<FieldDescription className="text-center">
+								{" "}
+								<Link
+									className="text-blue-600 hover:underline"
+									to="/forgot-password"
+								>
+									Forget Password
 								</Link>
 							</FieldDescription>
 						</Field>
