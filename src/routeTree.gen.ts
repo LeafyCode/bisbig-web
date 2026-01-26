@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
@@ -27,6 +28,11 @@ import { Route as DemoStartSsrSpaModeRouteImport } from './routes/demo/start.ssr
 import { Route as DemoStartSsrFullSsrRouteImport } from './routes/demo/start.ssr.full-ssr'
 import { Route as DemoStartSsrDataOnlyRouteImport } from './routes/demo/start.ssr.data-only'
 
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/_auth',
   getParentRoute: () => rootRouteImport,
@@ -112,6 +118,7 @@ const DemoStartSsrDataOnlyRoute = DemoStartSsrDataOnlyRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/privacy': typeof PrivacyRoute
   '/login': typeof AuthLoginRoute
   '/demo/storybook': typeof DemoStorybookRoute
   '/demo/table': typeof DemoTableRoute
@@ -129,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/demo/start/ssr': typeof DemoStartSsrIndexRoute
 }
 export interface FileRoutesByTo {
+  '/privacy': typeof PrivacyRoute
   '/login': typeof AuthLoginRoute
   '/demo/storybook': typeof DemoStorybookRoute
   '/demo/table': typeof DemoTableRoute
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/_auth': typeof AuthRouteWithChildren
+  '/privacy': typeof PrivacyRoute
   '/_auth/login': typeof AuthLoginRoute
   '/demo/storybook': typeof DemoStorybookRoute
   '/demo/table': typeof DemoTableRoute
@@ -168,6 +177,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/privacy'
     | '/login'
     | '/demo/storybook'
     | '/demo/table'
@@ -185,6 +195,7 @@ export interface FileRouteTypes {
     | '/demo/start/ssr'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/privacy'
     | '/login'
     | '/demo/storybook'
     | '/demo/table'
@@ -204,6 +215,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_app'
     | '/_auth'
+    | '/privacy'
     | '/_auth/login'
     | '/demo/storybook'
     | '/demo/table'
@@ -224,6 +236,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
+  PrivacyRoute: typeof PrivacyRoute
   DemoStorybookRoute: typeof DemoStorybookRoute
   DemoTableRoute: typeof DemoTableRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
@@ -241,6 +254,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_auth': {
       id: '/_auth'
       path: ''
@@ -386,6 +406,7 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
+  PrivacyRoute: PrivacyRoute,
   DemoStorybookRoute: DemoStorybookRoute,
   DemoTableRoute: DemoTableRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
